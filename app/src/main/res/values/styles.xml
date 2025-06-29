@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- PREMIUM: Professional splash screen with beautiful animations -->
+    <style name="Theme.LocationAlarm.Splash" parent="Theme.SplashScreen">
+        <!-- Beautiful gradient background -->
+        <item name="windowSplashScreenBackground">@drawable/splash_background</item>
+
+        <!-- Animated logo with pulsing effects -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_animated_logo</item>
+
+        <!-- Perfect timing for smooth transition -->
+        <item name="windowSplashScreenAnimationDuration">1200</item>
+
+        <!-- Smooth transition to main theme -->
+        <item name="postSplashScreenTheme">@style/Theme.LocationAlarm</item>
+
+        <!-- Ensure no white flash -->
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowDisablePreview">false</item>
+
+        <!-- Professional status bar -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

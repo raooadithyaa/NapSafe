@@ -1,0 +1,36 @@
+R_DEF: Internal format may change without notice
+local
+color alarm_color_1
+color alarm_color_2
+color alarm_color_3
+color alarm_color_4
+color alarm_color_5
+color alarm_color_6
+color alarm_color_7
+color alarm_color_8
+color app_background
+color black
+color primary_blue
+color primary_blue_dark
+color purple_200
+color purple_500
+color purple_700
+color teal_200
+color teal_700
+color white
+drawable ic_add_location
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+drawable ic_notification
+drawable splash_animated_logo
+drawable splash_background
+drawable splash_logo
+mipmap ic_launcher
+mipmap ic_launcher_round
+raw map_style_dark
+string app_name
+string google_maps_key
+style Theme.LocationAlarm
+style Theme.LocationAlarm.Splash
+xml backup_rules
+xml data_extraction_rules

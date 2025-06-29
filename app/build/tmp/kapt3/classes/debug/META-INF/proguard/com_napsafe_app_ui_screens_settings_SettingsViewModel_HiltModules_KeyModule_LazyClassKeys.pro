@@ -1,0 +1,1 @@
+-keep,allowobfuscation,allowshrinking class com.napsafe.app.ui.screens.settings.SettingsViewModel

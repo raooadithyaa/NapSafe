@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">NapSafe</string>
+    <string name="google_maps_key">${MAPS_API_KEY}</string>
+</resources>
