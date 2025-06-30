@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.LocationAlarm" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.NapSafe" parent="Theme.Material3.Light.NoActionBar">
         <!-- CRITICAL: Set immediate background color to prevent white screen -->
         <item name="android:windowBackground">@color/app_background</item>
         <item name="android:windowSplashScreenBackground">@color/app_background</item>

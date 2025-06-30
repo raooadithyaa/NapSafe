@@ -2,43 +2,37 @@ package com.napsafe.app.service
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.location.Geocoder
 import android.location.Location
-import android.util.Log
-import com.google.android.gms.location.*
-import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.napsafe.app.data.model.LocationData
 import com.napsafe.app.data.model.PlaceSearchResult
-import com.napsafe.app.utils.GeographicUtils
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 @Singleton
 class LocationService @Inject constructor(
     private val context: Context
 ) {
-    private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+    private val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+    private val placesClient: PlacesClient by lazy { Places.createClient(context) }
+    private val geocoder: Geocoder by lazy { Geocoder(context, Locale.getDefault()) }
 
-    // Initialize Places API properly with error handling
-    private val placesClient by lazy {
-        try {
-            if (!Places.isInitialized()) {
-                Places.initialize(context, "AIzaSyANlPWqMCOOPdBkKPk2JM3F7JYVZ8hbOFs")
-                Log.d("LocationService", "Places API initialized successfully")
-            }
-            Places.createClient(context)
-        } catch (e: Exception) {
-            Log.e("LocationService", "Failed to initialize Places API", e)
-            throw e
-        }
-    }
+    // PERFORMANCE: Cache session token to reduce API costs
+    private var sessionToken: AutocompleteSessionToken? = null
 
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): Location? = suspendCancellableCoroutine { continuation ->
@@ -47,124 +41,103 @@ class LocationService @Inject constructor(
                 continuation.resume(location)
             }
             .addOnFailureListener { exception ->
-                Log.e("LocationService", "Failed to get current location", exception)
-                continuation.resume(null)
+                continuation.resumeWithException(exception)
             }
     }
 
-    suspend fun searchPlaces(query: String): List<PlaceSearchResult> = suspendCancellableCoroutine { continuation ->
-        try {
-            Log.d("LocationService", "Searching for places with query: $query")
+    // PERFORMANCE: Optimized search with timeout and caching
+    suspend fun searchPlaces(query: String): List<PlaceSearchResult> {
+        if (query.isBlank()) return emptyList()
 
-            val token = AutocompleteSessionToken.newInstance()
-            val request = FindAutocompletePredictionsRequest.builder()
-                .setSessionToken(token)
-                .setQuery(query)
-                .build()
+        return withTimeoutOrNull(5000) { // PERFORMANCE: 5-second timeout
+            suspendCancellableCoroutine { continuation ->
+                // PERFORMANCE: Reuse session token to reduce costs
+                if (sessionToken == null) {
+                    sessionToken = AutocompleteSessionToken.newInstance()
+                }
 
-            placesClient.findAutocompletePredictions(request)
-                .addOnSuccessListener { response ->
-                    Log.d("LocationService", "Found ${response.autocompletePredictions.size} predictions")
-                    val results = response.autocompletePredictions.map { prediction ->
-                        PlaceSearchResult(
-                            placeId = prediction.placeId,
-                            name = prediction.getPrimaryText(null).toString(),
-                            address = prediction.getFullText(null).toString(),
-                            latitude = 0.0, // Will be fetched when place is selected
-                            longitude = 0.0
-                        )
+                val request = FindAutocompletePredictionsRequest.builder()
+                    .setQuery(query)
+                    .setSessionToken(sessionToken)
+                    .build()
+
+                placesClient.findAutocompletePredictions(request)
+                    .addOnSuccessListener { response ->
+                        val results = response.autocompletePredictions.take(5).map { prediction -> // PERFORMANCE: Limit to 5 results
+                            PlaceSearchResult(
+                                placeId = prediction.placeId,
+                                name = prediction.getPrimaryText(null).toString(),
+                                address = prediction.getSecondaryText(null).toString(),
+                                latitude = 0.0, // Will be fetched when selected
+                                longitude = 0.0
+                            )
+                        }
+                        continuation.resume(results)
                     }
-                    continuation.resume(results)
-                }
-                .addOnFailureListener { exception ->
-                    Log.e("LocationService", "Places API search failed", exception)
-                    continuation.resume(emptyList())
-                }
-        } catch (e: Exception) {
-            Log.e("LocationService", "Places API search exception", e)
-            continuation.resume(emptyList())
+                    .addOnFailureListener { exception ->
+                        continuation.resumeWithException(exception)
+                    }
+            }
+        } ?: emptyList()
+    }
+
+    // PERFORMANCE: Optimized place details fetching
+    suspend fun getPlaceDetails(placeId: String): LocationData? {
+        return withTimeoutOrNull(5000) { // PERFORMANCE: 5-second timeout
+            suspendCancellableCoroutine { continuation ->
+                val placeFields = listOf(
+                    Place.Field.ID,
+                    Place.Field.NAME,
+                    Place.Field.LAT_LNG,
+                    Place.Field.ADDRESS
+                )
+
+                val request = FetchPlaceRequest.newInstance(placeId, placeFields)
+
+                placesClient.fetchPlace(request)
+                    .addOnSuccessListener { response ->
+                        val place = response.place
+                        val latLng = place.latLng
+
+                        if (latLng != null) {
+                            val locationData = LocationData(
+                                latitude = latLng.latitude,
+                                longitude = latLng.longitude,
+                                address = place.address ?: "Unknown address",
+                                name = place.name ?: "Unknown place"
+                            )
+                            continuation.resume(locationData)
+                        } else {
+                            continuation.resume(null)
+                        }
+
+                        // PERFORMANCE: Reset session token after use
+                        sessionToken = null
+                    }
+                    .addOnFailureListener { exception ->
+                        continuation.resumeWithException(exception)
+                        sessionToken = null // Reset on error too
+                    }
+            }
         }
     }
 
-    suspend fun getPlaceDetails(placeId: String): LocationData? = suspendCancellableCoroutine { continuation ->
-        try {
-            Log.d("LocationService", "Fetching place details for ID: $placeId")
-
-            val placeFields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
-            val request = FetchPlaceRequest.newInstance(placeId, placeFields)
-
-            placesClient.fetchPlace(request)
-                .addOnSuccessListener { response ->
-                    val place = response.place
-                    val latLng = place.latLng
-                    if (latLng != null) {
-                        Log.d("LocationService", "Place details fetched successfully: ${place.name}")
-                        val locationData = LocationData(
-                            latitude = latLng.latitude,
-                            longitude = latLng.longitude,
-                            address = place.address ?: "",
-                            name = place.name ?: ""
-                        )
-                        continuation.resume(locationData)
-                    } else {
-                        Log.w("LocationService", "Place has no coordinates")
-                        continuation.resume(null)
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    Log.e("LocationService", "Place details fetch failed", exception)
-                    continuation.resume(null)
-                }
-        } catch (e: Exception) {
-            Log.e("LocationService", "Place details fetch exception", e)
-            continuation.resume(null)
-        }
-    }
-
-    /**
-     * Calculate PRECISE distance between two points using Android's built-in method
-     * This is the most accurate method for geographic calculations
-     * Returns distance in meters with high precision
-     */
+    // PERFORMANCE: Optimized distance calculation using Android's built-in method
     fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
-        val distance = GeographicUtils.calculatePreciseDistance(lat1, lon1, lat2, lon2)
-
-        // Log for debugging radius accuracy
-        Log.d("LocationService", "PRECISE Distance calculated: ${distance}m (${GeographicUtils.metersToKilometers(distance)}km)")
-
-        return distance // Returns precise distance in meters
+        val results = FloatArray(1)
+        Location.distanceBetween(lat1, lon1, lat2, lon2, results)
+        return results[0]
     }
 
-    /**
-     * Check if a location is within the specified radius of a target location
-     * Uses PRECISE distance calculation with geographic accuracy
-     */
-    fun isWithinRadius(
-        currentLat: Double,
-        currentLon: Double,
-        targetLat: Double,
-        targetLon: Double,
-        radiusInMeters: Float
-    ): Boolean {
-        val distance = calculateDistance(currentLat, currentLon, targetLat, targetLon)
-        val isWithin = distance <= radiusInMeters
-
-        Log.d("LocationService", "PRECISE Check - Distance: ${distance}m, Radius: ${radiusInMeters}m, Within: $isWithin")
-
-        return isWithin
-    }
-
-    /**
-     * Validate radius value for geographic accuracy
-     */
-    fun validateRadius(radiusInKm: Float): Boolean {
-        return GeographicUtils.validateRadius(radiusInKm)
-    }
-
-    /**
-     * Get formatted distance string for UI display
-     */
-    fun formatDistance(meters: Float): String {
-        return GeographicUtils.formatDistance(meters)
+    // PERFORMANCE: Efficient reverse geocoding with caching potential
+    suspend fun getAddressFromLocation(latitude: Double, longitude: Double): String {
+        return withTimeoutOrNull(3000) { // PERFORMANCE: 3-second timeout for geocoding
+            try {
+                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                addresses?.firstOrNull()?.getAddressLine(0) ?: "Unknown location"
+            } catch (e: Exception) {
+                "Unknown location"
+            }
+        } ?: "Unknown location"
     }
 }

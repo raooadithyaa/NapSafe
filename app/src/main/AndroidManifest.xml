@@ -16,6 +16,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Activity Recognition permission -->
+    <!-- <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" /> -->
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
     <application
         android:name=".NapSafeApplication"
         android:allowBackup="true"
@@ -25,7 +30,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.LocationAlarm.Splash"
+        android:theme="@style/Theme.NapSafe.Splash"
         tools:targetApi="31">
 
         <!-- Google Maps API Key -->
@@ -37,7 +42,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.LocationAlarm.Splash"
+            android:theme="@style/Theme.NapSafe.Splash"
             android:screenOrientation="portrait"
             android:launchMode="singleTop">
             <intent-filter>

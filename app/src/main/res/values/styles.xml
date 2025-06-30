@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- PREMIUM: Professional splash screen with beautiful animations -->
-    <style name="Theme.LocationAlarm.Splash" parent="Theme.SplashScreen">
+    <style name="Theme.NapSafe.Splash" parent="Theme.SplashScreen">
         <!-- Beautiful gradient background -->
         <item name="windowSplashScreenBackground">@drawable/splash_background</item>
 
@@ -12,7 +12,7 @@
         <item name="windowSplashScreenAnimationDuration">1200</item>
 
         <!-- Smooth transition to main theme -->
-        <item name="postSplashScreenTheme">@style/Theme.LocationAlarm</item>
+        <item name="postSplashScreenTheme">@style/Theme.NapSafe</item>
 
         <!-- Ensure no white flash -->
         <item name="android:windowBackground">@drawable/splash_background</item>

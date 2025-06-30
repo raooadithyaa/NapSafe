@@ -14,44 +14,43 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.napsafe.app.ui.navigation.LocationAlarmNavigation
-import com.napsafe.app.ui.theme.LocationAlarmTheme
+import com.napsafe.app.ui.theme.NapSafeTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        // PREMIUM: Install beautiful animated splash screen FIRST
+        // PERFORMANCE: Optimized splash screen timing
         val splashScreen = installSplashScreen()
 
-        // PREMIUM: Keep splash screen visible for perfect timing
+        // PERFORMANCE: Shorter splash duration for faster app startup
         var keepSplashOnScreen = true
         splashScreen.setKeepOnScreenCondition { keepSplashOnScreen }
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // PREMIUM: Set beautiful gradient background IMMEDIATELY
-        window.setBackgroundDrawableResource(R.drawable.splash_background)
+        // PERFORMANCE: Set background immediately to prevent white flash
+        window.setBackgroundDrawableResource(R.color.app_background)
 
         setContent {
-            LocationAlarmTheme {
+            NapSafeTheme {
                 val systemUiController = rememberSystemUiController()
 
                 LaunchedEffect(Unit) {
-                    // PREMIUM: Perfect timing for splash screen
-                    delay(1500) // Show beautiful splash for 1.5 seconds
+                    // PERFORMANCE: Reduced splash timing for faster startup
+                    delay(800) // Reduced from 1500ms to 800ms
 
                     systemUiController.setSystemBarsColor(
                         color = Color.Transparent,
                         darkIcons = true
                     )
 
-                    // PREMIUM: Hide splash screen after perfect timing
                     keepSplashOnScreen = false
                 }
 
-                // PREMIUM: Immediate background to prevent any white flash
+                // PERFORMANCE: Immediate background to prevent white flash
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()

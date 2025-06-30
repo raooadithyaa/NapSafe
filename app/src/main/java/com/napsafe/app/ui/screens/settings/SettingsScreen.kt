@@ -111,20 +111,6 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsSection(title = "Appearance") {
-                    SettingItem(
-                        icon = Icons.Default.DarkMode,
-                        title = "Dark Mode",
-                        description = "Switch to dark theme",
-                        value = uiState.darkMode,
-                        onValueChange = viewModel::updateDarkMode,
-                        iconColor = Color(0xFF374151),
-                        iconBg = Color(0xFFF3F4F6)
-                    )
-                }
-            }
-
-            item {
                 SettingsSection(title = "About") {
                     SettingItem(
                         icon = Icons.Default.Info,

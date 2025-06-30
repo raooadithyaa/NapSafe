@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,23 +21,24 @@ import com.napsafe.app.ui.theme.PrimaryVariant
 
 @Composable
 fun MapLoadingScreen() {
+    // PERFORMANCE: Optimized animations with reduced complexity
     val infiniteTransition = rememberInfiniteTransition(label = "loading_animation")
 
     val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 0.9f,
-        targetValue = 1.1f,
+        initialValue = 0.95f,
+        targetValue = 1.05f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = EaseInOutSine),
+            animation = tween(1200, easing = EaseInOutSine), // PERFORMANCE: Shorter duration
             repeatMode = RepeatMode.Reverse
         ),
         label = "pulse_scale"
     )
 
     val fadeAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.4f,
+        initialValue = 0.6f,
         targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = EaseInOutSine),
+            animation = tween(800, easing = EaseInOutSine), // PERFORMANCE: Shorter duration
             repeatMode = RepeatMode.Reverse
         ),
         label = "fade_alpha"
@@ -50,8 +50,8 @@ fun MapLoadingScreen() {
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Primary.copy(alpha = 0.08f),
-                        PrimaryVariant.copy(alpha = 0.04f),
+                        Primary.copy(alpha = 0.06f),
+                        PrimaryVariant.copy(alpha = 0.03f),
                         MaterialTheme.colorScheme.background
                     )
                 )
@@ -62,28 +62,27 @@ fun MapLoadingScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Animated location icon with professional pulsing
+            // PERFORMANCE: Simplified animated icon
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(80.dp) // PERFORMANCE: Smaller size
                     .scale(pulseScale),
                 contentAlignment = Alignment.Center
             ) {
-                // Outer ring
+                // PERFORMANCE: Single circle instead of multiple layers
                 Box(
                     modifier = Modifier
-                        .size(80.dp)
-                        .alpha(fadeAlpha * 0.3f)
+                        .size(60.dp)
+                        .alpha(fadeAlpha * 0.2f)
                         .background(
-                            Primary.copy(alpha = 0.15f),
+                            Primary.copy(alpha = 0.1f),
                             CircleShape
                         )
                 )
 
-                // Inner circle with icon
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(40.dp)
                         .background(Primary, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
@@ -91,12 +90,12 @@ fun MapLoadingScreen() {
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = "Loading Map...",
@@ -106,7 +105,7 @@ fun MapLoadingScreen() {
                 modifier = Modifier.alpha(fadeAlpha)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = "Preparing your location experience",
@@ -115,13 +114,13 @@ fun MapLoadingScreen() {
                 modifier = Modifier.alpha(fadeAlpha * 0.8f)
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Clean progress indicator
+            // PERFORMANCE: Simpler progress indicator
             LinearProgressIndicator(
                 modifier = Modifier
-                    .width(180.dp)
-                    .height(3.dp),
+                    .width(160.dp)
+                    .height(2.dp),
                 color = Primary,
                 trackColor = Primary.copy(alpha = 0.2f)
             )
