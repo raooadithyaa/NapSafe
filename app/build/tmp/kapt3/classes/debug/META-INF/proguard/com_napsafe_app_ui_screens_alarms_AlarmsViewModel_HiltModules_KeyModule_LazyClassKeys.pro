@@ -1,1 +1,0 @@
--keep,allowobfuscation,allowshrinking class com.napsafe.app.ui.screens.alarms.AlarmsViewModel
