@@ -33,3 +33,41 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Gradle
+.gradle/
+build/
+*/build/
+!/gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration
+local.properties
+*.iml
+
+# APKs
+*.apk
+
+# Proguard
+proguard/
+*.mapping
+
+# IntelliJ/Android Studio
+.idea/
+.DS_Store
+
+# Log files
+*.log
+
+# Mac system files
+.DS_Store
+
+# Other
+*.dex
+*.class
+*.jar
+*.war
+*.ear
+
+# Secrets
+secrets.properties
+local.defaults.properties
